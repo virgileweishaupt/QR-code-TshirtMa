@@ -239,12 +239,13 @@
   const eyeClosed = document.getElementById('eyeClosed');
   const lyricCaption = document.getElementById('lyricCaption');
   const lyricDots = document.getElementById('lyricDots');
+  const DOTS_TIME_SECONDS = 5; // les points apparaissent à 0:05
   const LYRIC_TIME_SECONDS = 110; // 1 minute 50
-  const DOTS_LEAD_SECONDS = 2.5; // les points apparaissent 2.5s avant la phrase
 
   let ytPlayer = null;
   let dotsTimeoutId = null;
   let lyricTimeoutId = null;
+  let dotsShown = false;
   let lyricShown = false;
 
   toggleBtn.addEventListener('click', function() {
@@ -290,33 +291,39 @@
   }
 
   function revealDots() {
+    dotsShown = true;
     lyricDots.classList.add('show');
   }
 
-  function scheduleLyric() {
-    if (lyricShown || !ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
-    clearTimeout(dotsTimeoutId);
-    clearTimeout(lyricTimeoutId);
+  function scheduleCues() {
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
     const currentTime = ytPlayer.getCurrentTime();
-    const dotsDelay = (LYRIC_TIME_SECONDS - DOTS_LEAD_SECONDS - currentTime) * 1000;
-    const lyricDelay = (LYRIC_TIME_SECONDS - currentTime) * 1000;
 
-    if (lyricDelay <= 0) {
-      revealCaption();
-      return;
+    if (!dotsShown && !lyricShown) {
+      clearTimeout(dotsTimeoutId);
+      const dotsDelay = (DOTS_TIME_SECONDS - currentTime) * 1000;
+      if (dotsDelay <= 0) {
+        revealDots();
+      } else {
+        dotsTimeoutId = setTimeout(revealDots, dotsDelay);
+      }
     }
-    if (dotsDelay <= 0) {
-      revealDots();
-    } else {
-      dotsTimeoutId = setTimeout(revealDots, dotsDelay);
+
+    if (!lyricShown) {
+      clearTimeout(lyricTimeoutId);
+      const lyricDelay = (LYRIC_TIME_SECONDS - currentTime) * 1000;
+      if (lyricDelay <= 0) {
+        revealCaption();
+      } else {
+        lyricTimeoutId = setTimeout(revealCaption, lyricDelay);
+      }
     }
-    lyricTimeoutId = setTimeout(revealCaption, lyricDelay);
   }
 
   function onPlayerStateChange(event) {
     // 1 = en lecture (YT.PlayerState.PLAYING)
     if (event.data === 1) {
-      scheduleLyric();
+      scheduleCues();
     } else {
       // pause / buffering : on annule les minuteurs pour resynchroniser au prochain "play"
       clearTimeout(dotsTimeoutId);
