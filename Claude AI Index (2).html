@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surprise 🔒</title>
+<style>
+  :root {
+    --bg: #0f0f10;
+    --card: #1a1a1c;
+    --accent: #e91e63;
+    --text: #f5f5f5;
+    --muted: #9a9a9a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 20px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 40px 32px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+  input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    background: #0f0f10;
+    color: var(--text);
+    font-size: 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .pwd-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .pwd-wrapper input {
+    margin-bottom: 0;
+    padding-right: 44px;
+  }
+  .toggle-pwd {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toggle-pwd:hover { color: var(--text); opacity: 1; }
+  button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.9; }
+  .error {
+    color: var(--accent);
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 16px;
+  }
+  .shake { animation: shake 0.4s; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* --- Ecran vidéo --- */
+  .video-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 10;
+  }
+  .video-screen.active {
+    display: flex;
+  }
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    margin: 0 20px;
+  }
+  .video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+  }
+  .fade-in {
+    animation: fadeIn 0.8s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .lyric-caption {
+    margin-top: 18px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+    letter-spacing: 0.3px;
+    text-align: center;
+    max-width: 500px;
+    opacity: 0;
+    animation: lyricFade 2s ease forwards;
+    animation-delay: 0.6s;
+  }
+  @keyframes lyricFade {
+    from { opacity: 0; }
+    to { opacity: 0.55; }
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="loginCard">
+    <div class="icon">🔒</div>
+    <h1>Mot de passe ma petite gueule</h1>
+    <p>Entre le mot de passe pour continuer</p>
+    <div class="pwd-wrapper">
+      <input type="password" id="pwd" placeholder="Mot de passe" autofocus>
+      <button type="button" class="toggle-pwd" id="togglePwd" aria-label="Afficher le mot de passe">
+        <svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <svg id="eyeClosed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+      </button>
+    </div>
+    <button onclick="checkPassword()">Ouvrir</button>
+    <div class="error" id="error"></div>
+  </div>
+
+  <div class="video-screen" id="videoScreen">
+    <div class="video-wrapper" id="videoWrapper"></div>
+    <div class="lyric-caption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
+  </div>
+
+<script>
+  // Change ces valeurs :
+  const PASSWORD = "vhagarrrrr";
+  const YOUTUBE_VIDEO_ID = "7DH468OKfQA";
+  const START_SECONDS = 0; // vidéo jouée depuis le début
+
+  // Notification push : va sur ntfy.sh, choisis un topic UNIQUE et secret,
+  // abonne-toi via l'app ntfy (iOS/Android) ou sur le site, puis colle le nom ici :
+  const NTFY_TOPIC = "virgile-surpriseMa-x7k2";
+
+  const input = document.getElementById('pwd');
+  const errorEl = document.getElementById('error');
+  const card = document.getElementById('loginCard');
+  const videoScreen = document.getElementById('videoScreen');
+  const videoWrapper = document.getElementById('videoWrapper');
+  const toggleBtn = document.getElementById('togglePwd');
+  const eyeOpen = document.getElementById('eyeOpen');
+  const eyeClosed = document.getElementById('eyeClosed');
+
+  toggleBtn.addEventListener('click', function() {
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    eyeOpen.style.display = isHidden ? 'none' : 'block';
+    eyeClosed.style.display = isHidden ? 'block' : 'none';
+  });
+
+  function checkPassword() {
+    if (input.value.trim() === PASSWORD) {
+      showVideo();
+    } else {
+      errorEl.textContent = "Mot de passe incorrect, réessaie 🙃";
+      card.classList.remove('shake');
+      void card.offsetWidth; // reset animation
+      card.classList.add('shake');
+    }
+  }
+
+  function notifyUnlock() {
+    // Envoie une notification push discrète, sans bloquer l'affichage de la vidéo.
+    // Important : les en-têtes HTTP n'acceptent que de l'ASCII, donc pas d'emoji
+    // dans "Title" (c'était probablement la cause du souci de notification).
+    fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      method: 'POST',
+      body: 'Quelqu\'un a entre le bon mot de passe et regarde la video !',
+      headers: {
+        'Title': 'Surprise ouverte',
+        'Priority': 'high'
+      }
+    })
+      .then(res => {
+        if (!res.ok) console.error('ntfy: réponse non-ok', res.status);
+      })
+      .catch(err => console.error('ntfy: échec de la requête', err));
+  }
+
+  function showVideo() {
+    card.style.display = 'none';
+    notifyUnlock();
+
+    // autoplay=1 tente la lecture auto (peut être muet selon le navigateur)
+    // playsinline=1 évite le plein écran forcé sur mobile
+    // start=X démarre la vidéo au timestamp choisi (en secondes)
+    const src = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0&playsinline=1&start=${START_SECONDS}`;
+    const iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+    iframe.setAttribute('allowfullscreen', '');
+
+    videoWrapper.appendChild(iframe);
+    videoScreen.classList.add('active', 'fade-in');
+  }
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkPassword();
+  });
+</script>
+</body>
+</html>
