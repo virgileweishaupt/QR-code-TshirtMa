@@ -147,7 +147,7 @@
     to { opacity: 1; }
   }
   .lyric-caption {
-    margin-top: 18px;
+    margin-top: 44px;
     color: #666;
     font-size: 12px;
     font-style: italic;
@@ -155,8 +155,11 @@
     text-align: center;
     max-width: 500px;
     opacity: 0;
+    visibility: hidden;
+  }
+  .lyric-caption.show {
+    visibility: visible;
     animation: lyricFade 2s ease forwards;
-    animation-delay: 0.6s;
   }
   @keyframes lyricFade {
     from { opacity: 0; }
@@ -187,8 +190,8 @@
   </div>
 
   <div class="video-screen" id="videoScreen">
-    <div class="video-wrapper" id="videoWrapper"></div>
-    <div class="lyric-caption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
+    <div class="video-wrapper"><div id="ytTarget"></div></div>
+    <div class="lyric-caption" id="lyricCaption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
   </div>
 
 <script>
@@ -205,10 +208,16 @@
   const errorEl = document.getElementById('error');
   const card = document.getElementById('loginCard');
   const videoScreen = document.getElementById('videoScreen');
-  const videoWrapper = document.getElementById('videoWrapper');
+  const ytTarget = document.getElementById('ytTarget');
   const toggleBtn = document.getElementById('togglePwd');
   const eyeOpen = document.getElementById('eyeOpen');
   const eyeClosed = document.getElementById('eyeClosed');
+  const lyricCaption = document.getElementById('lyricCaption');
+  const LYRIC_TIME_SECONDS = 110; // 1 minute 50
+
+  let ytPlayer = null;
+  let lyricTimeoutId = null;
+  let lyricShown = false;
 
   toggleBtn.addEventListener('click', function() {
     const isHidden = input.type === 'password';
@@ -246,21 +255,61 @@
       .catch(err => console.error('ntfy: échec de la requête', err));
   }
 
+  function scheduleLyric() {
+    if (lyricShown || !ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+    clearTimeout(lyricTimeoutId);
+    const currentTime = ytPlayer.getCurrentTime();
+    const delay = (LYRIC_TIME_SECONDS - currentTime) * 1000;
+    if (delay <= 0) {
+      lyricShown = true;
+      lyricCaption.classList.add('show');
+    } else {
+      lyricTimeoutId = setTimeout(function() {
+        lyricShown = true;
+        lyricCaption.classList.add('show');
+      }, delay);
+    }
+  }
+
+  function onPlayerStateChange(event) {
+    // 1 = en lecture (YT.PlayerState.PLAYING)
+    if (event.data === 1) {
+      scheduleLyric();
+    } else {
+      // pause / buffering : on annule le minuteur pour resynchroniser au prochain "play"
+      clearTimeout(lyricTimeoutId);
+    }
+  }
+
+  function createPlayer() {
+    ytPlayer = new YT.Player(ytTarget, {
+      videoId: YOUTUBE_VIDEO_ID,
+      playerVars: {
+        autoplay: 1,
+        rel: 0,
+        playsinline: 1,
+        start: START_SECONDS
+      },
+      events: {
+        onStateChange: onPlayerStateChange
+      }
+    });
+  }
+
   function showVideo() {
     card.style.display = 'none';
     notifyUnlock();
-
-    // autoplay=1 tente la lecture auto (peut être muet selon le navigateur)
-    // playsinline=1 évite le plein écran forcé sur mobile
-    // start=X démarre la vidéo au timestamp choisi (en secondes)
-    const src = `https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0&playsinline=1&start=${START_SECONDS}`;
-    const iframe = document.createElement('iframe');
-    iframe.src = src;
-    iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
-    iframe.setAttribute('allowfullscreen', '');
-
-    videoWrapper.appendChild(iframe);
     videoScreen.classList.add('active', 'fade-in');
+
+    // Charge l'API YouTube dynamiquement, puis crée le lecteur
+    if (window.YT && window.YT.Player) {
+      createPlayer();
+    } else {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.body.appendChild(tag);
+      window.onYouTubeIframeAPIReady = createPlayer;
+    }
   }
 
   input.addEventListener('keydown', function(e) {
