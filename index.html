@@ -146,8 +146,19 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  .sound-hint {
+    color: #777;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
   .lyric-caption {
-    margin-top: 92px;
+    margin-top: 70px;
     color: #8a8a8a;
     font-size: 13px;
     font-style: italic;
@@ -166,9 +177,10 @@
     to { opacity: 0.7; }
   }
   .lyric-dots {
-    margin-top: 92px;
+    margin-top: 70px;
     display: flex;
-    gap: 7px;
+    align-items: center;
+    gap: 10px;
     opacity: 0;
     visibility: hidden;
   }
@@ -177,8 +189,8 @@
     animation: lyricFade 0.6s ease forwards;
   }
   .lyric-dots span {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: #8a8a8a;
     animation: dotPulse 1.2s infinite ease-in-out;
@@ -214,6 +226,14 @@
   </div>
 
   <div class="video-screen" id="videoScreen">
+    <div class="sound-hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      </svg>
+      Sound on
+    </div>
     <div class="video-wrapper"><div id="ytTarget"></div></div>
     <div class="lyric-dots" id="lyricDots"><span></span><span></span><span></span></div>
     <div class="lyric-caption" id="lyricCaption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
