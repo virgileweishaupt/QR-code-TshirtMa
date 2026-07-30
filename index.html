@@ -147,24 +147,37 @@
     to { opacity: 1; }
   }
   .sound-hint {
-    color: #777;
-    font-size: 12px;
-    letter-spacing: 0.5px;
+    color: #e8e8e8;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
-    margin-bottom: 16px;
-    opacity: 0.7;
+    margin-bottom: 40px;
+    opacity: 0.9;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+  }
+  .lyric-zone {
+    position: relative;
+    margin-top: 70px;
+    width: 100%;
+    min-height: 24px;
+    display: flex;
+    justify-content: center;
   }
   .lyric-caption {
-    margin-top: 70px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
     color: #8a8a8a;
     font-size: 13px;
     font-style: italic;
     letter-spacing: 0.3px;
     text-align: center;
     max-width: 500px;
+    white-space: nowrap;
     opacity: 0;
     visibility: hidden;
   }
@@ -177,7 +190,10 @@
     to { opacity: 0.7; }
   }
   .lyric-dots {
-    margin-top: 70px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -235,8 +251,10 @@
       Sound on
     </div>
     <div class="video-wrapper"><div id="ytTarget"></div></div>
-    <div class="lyric-dots" id="lyricDots"><span></span><span></span><span></span></div>
-    <div class="lyric-caption" id="lyricCaption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
+    <div class="lyric-zone">
+      <div class="lyric-dots" id="lyricDots"><span></span><span></span><span></span></div>
+      <div class="lyric-caption" id="lyricCaption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
+    </div>
   </div>
 
 <script>
