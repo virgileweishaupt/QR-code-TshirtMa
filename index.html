@@ -147,9 +147,9 @@
     to { opacity: 1; }
   }
   .lyric-caption {
-    margin-top: 44px;
-    color: #666;
-    font-size: 12px;
+    margin-top: 92px;
+    color: #8a8a8a;
+    font-size: 13px;
     font-style: italic;
     letter-spacing: 0.3px;
     text-align: center;
@@ -163,12 +163,12 @@
   }
   @keyframes lyricFade {
     from { opacity: 0; }
-    to { opacity: 0.55; }
+    to { opacity: 0.7; }
   }
   .lyric-dots {
-    margin-top: 44px;
+    margin-top: 92px;
     display: flex;
-    gap: 5px;
+    gap: 7px;
     opacity: 0;
     visibility: hidden;
   }
@@ -177,17 +177,17 @@
     animation: lyricFade 0.6s ease forwards;
   }
   .lyric-dots span {
-    width: 4px;
-    height: 4px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: #666;
+    background: #8a8a8a;
     animation: dotPulse 1.2s infinite ease-in-out;
   }
   .lyric-dots span:nth-child(2) { animation-delay: 0.2s; }
   .lyric-dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes dotPulse {
-    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
-    40% { opacity: 0.6; transform: scale(1); }
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 0.75; transform: scale(1); }
   }
 </style>
 </head>
