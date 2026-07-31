@@ -185,6 +185,12 @@
     visibility: visible;
     animation: lyricFade 2s ease forwards;
   }
+  .lyric-caption.emphasis {
+    font-weight: 700;
+    text-decoration: underline;
+    font-style: normal;
+    color: #c9c9c9;
+  }
   @keyframes lyricFade {
     from { opacity: 0; }
     to { opacity: 0.7; }
@@ -253,7 +259,7 @@
     <div class="video-wrapper"><div id="ytTarget"></div></div>
     <div class="lyric-zone">
       <div class="lyric-dots" id="lyricDots"><span></span><span></span><span></span></div>
-      <div class="lyric-caption" id="lyricCaption">"Nothing in this whole wide world don't mean a thing, if I ain't got you with me, baby"</div>
+      <div class="lyric-caption" id="lyricCaption"></div>
     </div>
   </div>
 
@@ -278,13 +284,27 @@
   const lyricCaption = document.getElementById('lyricCaption');
   const lyricDots = document.getElementById('lyricDots');
   const DOTS_TIME_SECONDS = 5; // les points apparaissent à 0:05
-  const LYRIC_TIME_SECONDS = 110; // 1 minute 50
+
+  // Liste des messages affichés au fil de la vidéo, avec leur timecode en secondes.
+  // Les entrées avec text: "" correspondent aux paroles de la chanson que je ne
+  // peux pas reproduire ici — colle ton propre texte directement entre les guillemets.
+  // "emphasis: true" affiche la ligne en gras + souligné (réservé à la toute dernière).
+  const CAPTIONS = [
+    { time: 20,  text: "Concentres toi sur les paroles, même si j'écris des blagues ici" },
+    { time: 60,  text: "Un jour je te chanterais ça en jouant moi-même du piano carrément" },
+    { time: 80,  text: "Bon maintenant écoutes bien" },
+    { time: 105, text: "Everything means nothing, If I ain't got you" }, // 1:45
+    { time: 130, text: "Je me demande dans quelles conditions tu regardes ça là, dans le train, seule, avec ton frère, Elodie...?, belek tu te dis que je suis vraiment fou... ne portes pas plainte stp" },
+    { time: 147, text: "And what good would it be ? With no one to share, with no one who TRULY CAAARES FOR YOUUUUUUUUU" }, // 2:27
+    { time: 180, text: "Some people want des cookies, some just want des cheesecakes, but des cheesecakes means noting, If I ain't got you with me" }, // 3:00
+    { time: 230, text: "Nothing in this whole wide world don't mean a thing, if I ain't got you with me, MAAAAAAAATIIIIIIIIIIIIIII", emphasis: true } // 3:50
+  ];
 
   let ytPlayer = null;
   let dotsTimeoutId = null;
-  let lyricTimeoutId = null;
   let dotsShown = false;
-  let lyricShown = false;
+  let captionTimeoutIds = [];
+  let captionsScheduled = false;
 
   toggleBtn.addEventListener('click', function() {
     const isHidden = input.type === 'password';
@@ -322,22 +342,25 @@
       .catch(err => console.error('ntfy: échec de la requête', err));
   }
 
-  function revealCaption() {
-    lyricShown = true;
-    lyricDots.classList.remove('show');
-    lyricCaption.classList.add('show');
-  }
-
   function revealDots() {
     dotsShown = true;
     lyricDots.classList.add('show');
+  }
+
+  function showCaption(entry) {
+    lyricDots.classList.remove('show');
+    lyricCaption.textContent = entry.text;
+    lyricCaption.classList.toggle('emphasis', !!entry.emphasis);
+    lyricCaption.classList.remove('show');
+    void lyricCaption.offsetWidth; // reset l'animation pour chaque nouvelle ligne
+    lyricCaption.classList.add('show');
   }
 
   function scheduleCues() {
     if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
     const currentTime = ytPlayer.getCurrentTime();
 
-    if (!dotsShown && !lyricShown) {
+    if (!dotsShown) {
       clearTimeout(dotsTimeoutId);
       const dotsDelay = (DOTS_TIME_SECONDS - currentTime) * 1000;
       if (dotsDelay <= 0) {
@@ -347,14 +370,17 @@
       }
     }
 
-    if (!lyricShown) {
-      clearTimeout(lyricTimeoutId);
-      const lyricDelay = (LYRIC_TIME_SECONDS - currentTime) * 1000;
-      if (lyricDelay <= 0) {
-        revealCaption();
-      } else {
-        lyricTimeoutId = setTimeout(revealCaption, lyricDelay);
-      }
+    if (!captionsScheduled) {
+      captionsScheduled = true;
+      CAPTIONS.forEach(function(entry) {
+        if (!entry.text || !entry.text.trim()) return; // rien à afficher tant que le texte n'est pas rempli
+        const delay = (entry.time - currentTime) * 1000;
+        if (delay <= 0) {
+          showCaption(entry);
+        } else {
+          captionTimeoutIds.push(setTimeout(function() { showCaption(entry); }, delay));
+        }
+      });
     }
   }
 
@@ -365,7 +391,9 @@
     } else {
       // pause / buffering : on annule les minuteurs pour resynchroniser au prochain "play"
       clearTimeout(dotsTimeoutId);
-      clearTimeout(lyricTimeoutId);
+      captionTimeoutIds.forEach(clearTimeout);
+      captionTimeoutIds = [];
+      captionsScheduled = false;
     }
   }
 
