@@ -176,6 +176,28 @@
     opacity: 0.85;
     text-align: center;
   }
+  .end-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    z-index: 20;
+  }
+  .end-screen.active {
+    display: flex;
+  }
+  .end-screen p {
+    color: #f0f0f0;
+    font-size: 20px;
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.6;
+    opacity: 0;
+    animation: lyricFade 2s ease forwards;
+  }
   .lyric-zone {
     position: relative;
     margin-top: 70px;
@@ -286,6 +308,10 @@
     </div>
   </div>
 
+  <div class="end-screen" id="endScreen">
+    <p id="endMessage">Salut, ne t'inquiètes pas, j'ai écouté tes envies et besoins. Ce petit "mot" n'attend rien en retour, ni réaction, ni réponse. Sa seule fonction est d'exister, de te montrer, en humour et en légèreté que peu importe où tu en es, moi je tiens ma ligne et que ce n'était pas une pulsion de 10 jours.</p>
+  </div>
+
 <script>
   // Change ces valeurs :
   const PASSWORD = "vhagarrrrr";
@@ -309,8 +335,6 @@
   const DOTS_TIME_SECONDS = 5; // les points apparaissent à 0:05
 
   // Liste des messages affichés au fil de la vidéo, avec leur timecode en secondes.
-  // Les entrées avec text: "" correspondent aux paroles de la chanson que je ne
-  // peux pas reproduire ici — colle ton propre texte directement entre les guillemets.
   // "emphasis: true" affiche la ligne en gras + souligné (réservé à la toute dernière).
   const CAPTIONS = [
     { time: 20,  text: "Concentres toi sur les paroles, même si j'écris des blagues ici" },
@@ -350,8 +374,6 @@
 
   function notifyUnlock() {
     // Envoie une notification push discrète, sans bloquer l'affichage de la vidéo.
-    // Important : les en-têtes HTTP n'acceptent que de l'ASCII, donc pas d'emoji
-    // dans "Title" (c'était probablement la cause du souci de notification).
     fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
       method: 'POST',
       body: 'Quelqu\'un a entre le bon mot de passe et regarde la video !',
@@ -418,6 +440,10 @@
     // 1 = en lecture (YT.PlayerState.PLAYING)
     if (event.data === 1) {
       scheduleCues();
+    } else if (event.data === 0) {
+      // 0 = vidéo terminée
+      videoScreen.classList.remove('active');
+      document.getElementById('endScreen').classList.add('active');
     } else {
       // pause / buffering : on annule les minuteurs pour resynchroniser au prochain "play"
       clearTimeout(dotsTimeoutId);
